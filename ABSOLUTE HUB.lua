@@ -1,4 +1,4 @@
--- Absolute Solver Hub (Cyn Edition) - UNIVERSAL SCRIPTS
+-- Absolute Solver Hub (Cyn Edition) - UNIVERSAL SCRIPTS 
 -- Tecla de Atalho: F4
 
 local UserInputService = game:GetService("UserInputService")
@@ -264,3 +264,4 @@ UserInputService.InputEnded:Connect(function(input)
 end)
 
 print("Absolute Solver Hub: Glitch Engine Active. [F4]")
+
