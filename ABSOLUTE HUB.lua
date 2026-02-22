@@ -91,7 +91,7 @@ local function AddCommand(name, desc, func)
     local Btn = Instance.new("TextButton", Content)
     Btn.Size = UDim2.new(1, 0, 0, 35)
     Btn.BackgroundTransparency = 1
-    Btn.Text = "> MESSAGE FROM USER: \"" .. name:upper() .. "\""
+    Btn.Text = "> ADMIN SOLVER: \"" .. name:upper() .. "\""
     Btn.TextColor3 = Theme.Text
     Btn.Font = Enum.Font.Code
     Btn.TextSize = 15
@@ -264,5 +264,6 @@ UserInputService.InputEnded:Connect(function(input)
 end)
 
 print("Absolute Solver Hub: Glitch Engine Active. [F4]")
+
 
 
