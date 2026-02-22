@@ -76,7 +76,7 @@ Layout.Padding = UDim.new(0, 8)
 local StopLabel = Instance.new("TextLabel", MainFrame)
 StopLabel.Size = UDim2.new(1, 0, 0, 60)
 StopLabel.Position = UDim2.new(0, 0, 1, -70)
-StopLabel.Text = "STOP :)"
+StopLabel.Text = "ADMINISTRADOR"
 StopLabel.TextColor3 = Theme.Accent
 StopLabel.Font = Enum.Font.Code
 StopLabel.TextSize = 55
@@ -264,4 +264,5 @@ UserInputService.InputEnded:Connect(function(input)
 end)
 
 print("Absolute Solver Hub: Glitch Engine Active. [F4]")
+
 
