@@ -1,11 +1,9 @@
--- Absolute Solver Hub (Cyn Edition) - FULL INTEGRATED
+-- Absolute Solver Hub (Cyn Edition) - UNIVERSAL SCRIPTS
 -- Tecla de Atalho: F4
--- Estilo: Murder Drones (CYN)
 
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
@@ -33,13 +31,11 @@ MainFrame.Position = UDim2.new(0.5, -250, 0.5, -190)
 MainFrame.BackgroundColor3 = Theme.Background
 MainFrame.BackgroundTransparency = Theme.Transparent
 MainFrame.BorderSizePixel = 0
-MainFrame.Visible = true
 MainFrame.Parent = ScreenGui
 
 -- BORDAS DUPLAS (FIEL À IMAGEM)
-local OuterStroke = Instance.new("UIStroke", MainFrame)
-OuterStroke.Thickness = 4
-OuterStroke.Color = Theme.Accent
+Instance.new("UIStroke", MainFrame).Thickness = 4
+Instance.new("UIStroke", MainFrame).Color = Theme.Accent
 
 local InnerLine = Instance.new("Frame", MainFrame)
 InnerLine.Size = UDim2.new(1, -12, 1, -12)
@@ -87,41 +83,10 @@ StopLabel.TextSize = 55
 StopLabel.BackgroundTransparency = 1
 
 -----------------------------------------------------------
--- SISTEMA DE GLITCH (ABRIR/FECHAR)
+-- MOTORES DE COMANDO (SCRIPTS UNIVERSAIS)
 -----------------------------------------------------------
-local IsMoving = false
-local currentStartPos = MainFrame.Position
 
-local function PlayGlitch(showing)
-    if IsMoving then return end
-    IsMoving = true
-    
-    if showing then
-        MainFrame.Visible = true
-        for i = 1, 8 do
-            MainFrame.Position = UDim2.new(currentStartPos.X.Scale, currentStartPos.X.Offset + math.random(-12, 12), currentStartPos.Y.Scale, currentStartPos.Y.Offset + math.random(-6, 6))
-            MainFrame.BackgroundTransparency = math.random(1, 4) / 10
-            Header.TextColor3 = (i % 2 == 0) and Color3.new(1, 1, 1) or Theme.Accent
-            task.wait(0.02)
-        end
-        MainFrame.Position = currentStartPos
-        MainFrame.BackgroundTransparency = Theme.Transparent
-        Header.TextColor3 = Theme.Accent
-    else
-        for i = 1, 8 do
-            MainFrame.Position = UDim2.new(currentStartPos.X.Scale, currentStartPos.X.Offset + math.random(-15, 15), currentStartPos.Y.Scale, currentStartPos.Y.Offset + math.random(-10, 10))
-            MainFrame.BackgroundTransparency = i / 8
-            task.wait(0.02)
-        end
-        MainFrame.Visible = false
-    end
-    IsMoving = false
-end
-
------------------------------------------------------------
--- MOTOR DE COMANDOS (BOTÕES)
------------------------------------------------------------
-local function AddCommand(name, func)
+local function AddCommand(name, desc, func)
     local active = false
     local Btn = Instance.new("TextButton", Content)
     Btn.Size = UDim2.new(1, 0, 0, 35)
@@ -135,31 +100,45 @@ local function AddCommand(name, func)
     Btn.MouseButton1Click:Connect(function()
         active = not active
         Btn.TextColor3 = active and Color3.new(1,1,1) or Theme.Text
-        task.spawn(function() func(active) end)
+        task.spawn(function()
+            if active then 
+                print("[SOLVER] Executing: " .. name)
+                func(true) 
+            else 
+                func(false) 
+            end
+        end)
     end)
 end
 
 -----------------------------------------------------------
--- SCRIPTS UNIVERSAIS INTEGRADOS
+-- LISTA DE SCRIPTS UNIVERSAIS (FUNCIONAIS)
 -----------------------------------------------------------
 
-AddCommand("Speed Overclock", function(on)
+-- 1. VELOCIDADE ABSOLUTA
+AddCommand("Speed Overclock", "Aumenta WalkSpeed", function(on)
     LocalPlayer.Character.Humanoid.WalkSpeed = on and 60 or 16
 end)
 
-AddCommand("High Jump", function(on)
+-- 2. PULO GRAVITACIONAL
+AddCommand("High Jump", "Aumenta JumpPower", function(on)
     LocalPlayer.Character.Humanoid.JumpPower = on and 100 or 50
     LocalPlayer.Character.Humanoid.UseJumpPower = true
 end)
 
+-- 3. VOAR (FLY) - MODO SIMPLES
 local flying = false
 local bv = nil
-AddCommand("Solver Flight", function(on)
+AddCommand("Solver Flight", "Habilita Voo", function(on)
     flying = on
-    local root = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    local char = LocalPlayer.Character
+    local root = char:FindFirstChild("HumanoidRootPart")
+    
     if on and root then
         bv = Instance.new("BodyVelocity", root)
         bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bv.Velocity = Vector3.new(0,0,0)
+        
         task.spawn(function()
             while flying do
                 local dir = Vector3.new(0,0,0)
@@ -167,7 +146,7 @@ AddCommand("Solver Flight", function(on)
                 if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir = dir - Camera.CFrame.LookVector end
                 if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir = dir - Camera.CFrame.RightVector end
                 if UserInputService:IsKeyDown(Enum.KeyCode.D) then dir = dir + Camera.CFrame.RightVector end
-                bv.Velocity = dir * 60
+                bv.Velocity = dir * 50
                 task.wait()
             end
             if bv then bv:Destroy() end
@@ -175,8 +154,36 @@ AddCommand("Solver Flight", function(on)
     end
 end)
 
+-- 4. ESP PLAYERS (VISÃO DE DRONE)
+local esp_folders = Instance.new("Folder", ScreenGui)
+AddCommand("Drone Vision", "ESP Players", function(on)
+    if on then
+        RunService:BindToRenderStep("CynESP", 1, function()
+            esp_folders:ClearAllChildren()
+            for _, p in pairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+                    local box = Instance.new("BillboardGui", esp_folders)
+                    box.Adornee = p.Character.Head
+                    box.Size = UDim2.new(0, 100, 0, 50)
+                    box.AlwaysOnTop = true
+                    local label = Instance.new("TextLabel", box)
+                    label.Size = UDim2.new(1,0,1,0)
+                    label.Text = "[ " .. p.DisplayName .. " ]"
+                    label.TextColor3 = Theme.Accent
+                    label.BackgroundTransparency = 1
+                    label.Font = Enum.Font.Code
+                end
+            end
+        end)
+    else
+        RunService:UnbindFromRenderStep("CynESP")
+        esp_folders:ClearAllChildren()
+    end
+end)
+
+-- 5. NOCLIP (ATRAVESSAR PAREDES)
 local noclip = false
-AddCommand("Ghost Protocol", function(on)
+AddCommand("Ghost Protocol", "NoClip", function(on)
     noclip = on
     RunService.Stepped:Connect(function()
         if noclip and LocalPlayer.Character then
@@ -187,62 +194,73 @@ AddCommand("Ghost Protocol", function(on)
     end)
 end)
 
-local esp_folder = Instance.new("Folder", ScreenGui)
-AddCommand("Drone Vision", function(on)
-    if on then
-        RunService:BindToRenderStep("CynESP", 1, function()
-            esp_folder:ClearAllChildren()
-            for _, p in pairs(Players:GetPlayers()) do
-                if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
-                    local b = Instance.new("BillboardGui", esp_folder)
-                    b.Adornee = p.Character.Head
-                    b.Size = UDim2.new(0, 100, 0, 50)
-                    b.AlwaysOnTop = true
-                    local l = Instance.new("TextLabel", b)
-                    l.Size = UDim2.new(1,0,1,0)
-                    l.Text = "[ " .. p.DisplayName .. " ]"
-                    l.TextColor3 = Theme.Accent
-                    l.Font = Enum.Font.Code
-                    l.BackgroundTransparency = 1
-                end
-            end
-        end)
+-----------------------------------------------------------
+-- SISTEMA DE GLITCH (ABRIR/FECHAR)
+-----------------------------------------------------------
+local IsMoving = false
+
+local function GlitchEffect(showing)
+    if IsMoving then return end
+    IsMoving = true
+    
+    if showing then
+        MainFrame.Visible = true
+        -- Som de "bip" ou interferência pode ser simulado com flashes
+        for i = 1, 6 do
+            MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + math.random(-10, 10), startPos.Y.Scale, startPos.Y.Offset + math.random(-5, 5))
+            MainFrame.BackgroundTransparency = math.random(1, 5) / 10
+            Header.TextColor3 = (i % 2 == 0) and Color3.new(1, 1, 1) or Theme.Accent
+            task.wait(0.03)
+        end
+        MainFrame.Position = startPos
+        MainFrame.BackgroundTransparency = Theme.Transparent
+        Header.TextColor3 = Theme.Accent
     else
-        RunService:UnbindFromRenderStep("CynESP")
-        esp_folder:ClearAllChildren()
+        for i = 1, 6 do
+            MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + math.random(-15, 15), startPos.Y.Scale, startPos.Y.Offset + math.random(-8, 8))
+            MainFrame.BackgroundTransparency = i / 6
+            task.wait(0.02)
+        end
+        MainFrame.Visible = false
+    end
+    
+    IsMoving = false
+end
+
+-- Atualiza a posição inicial para o sistema de drag não quebrar o glitch
+startPos = MainFrame.Position
+
+-- TECLA F4 COM ANIMAÇÃO CYN
+UserInputService.InputBegan:Connect(function(input, proc)
+    if not proc and input.KeyCode == Enum.KeyCode.F4 then
+        local isCurrentlyVisible = MainFrame.Visible
+        GlitchEffect(not isCurrentlyVisible)
     end
 end)
 
 -----------------------------------------------------------
--- ARRASTAR (DRAG) & ATALHO F4
+-- AJUSTE NO SISTEMA DE ARRASTAR (DRAG)
 -----------------------------------------------------------
-local dragging, dragStart
 MainFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
         dragStart = input.Position
-        currentStartPos = MainFrame.Position
+        startPos = MainFrame.Position -- Atualiza posição base para o glitch saber onde voltar
     end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
     if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
         local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(currentStartPos.X.Scale, currentStartPos.X.Offset + delta.X, currentStartPos.Y.Scale, currentStartPos.Y.Offset + delta.Y)
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
 end)
 
 UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then 
         dragging = false 
-        currentStartPos = MainFrame.Position
+        startPos = MainFrame.Position -- Fixa a nova posição após arrastar
     end 
 end)
 
-UserInputService.InputBegan:Connect(function(input, proc)
-    if not proc and input.KeyCode == Enum.KeyCode.F4 then
-        PlayGlitch(not MainFrame.Visible)
-    end
-end)
-
-print("Absolute Solver: System Override Successful. [F4]")
+print("Absolute Solver Hub: Glitch Engine Active. [F4]")
